@@ -1,0 +1,21 @@
+class Passenger{
+	String ticketId;
+	String name;
+	int age;
+	String gender;
+	String berth;
+	String status;
+	String seat_num;
+	Passenger(String ticketId,String name,int age,String gender,String berth,String seat_num,String status){
+		this.ticketId=ticketId;
+		this.name=name;
+		this.age=age;
+		this.gender=gender;
+		this.berth=berth;
+		this.status=status;
+		this.seat_num=seat_num;
+	}
+	public String toString(Passenger n) {
+		return n.ticketId+" "+n.name+" "+n.age+" "+n.gender+" "+n.berth+" "+n.seat_num+" "+n.status;
+	}
+}
