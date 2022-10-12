@@ -1,0 +1,731 @@
+import java.util.*;
+import java.sql.*;
+public class RailwayTicketTesting {
+	public static void main(String[] args) {
+		try {
+			Class.forName("org.sqlite.JDBC");
+		    Connection con=DriverManager.getConnection("jdbc:sqlite:C://Users//kavinkumar.n//Desktop//SQLITE//RailwayReservation.db");
+		    DatabaseMetaData dbm=con.getMetaData();
+		    ResultSet table_exist=dbm.getTables(null, null,"PassengerDetails", null);
+		    if(table_exist.next()==false) {
+		    	String table="create table PassengerDetails(Ticket_Id varchar(10) primary key,Name varchar(20),Age Integer,"
+						+ "Gender varchar(1),Women_with_child varchar(3),Child_Name varchar(20),Berth varchar(20),"
+						+ "Seat_Number varchar(6),Status varchar(10),Login_Username varchar(20),Payment_Status varchar(10))";
+				PreparedStatement s=con.prepareStatement(table);
+				s.executeUpdate();
+		    }
+		    
+		    ResultSet pay_table=dbm.getTables(null, null,"PayData", null);
+		    if(pay_table.next()==false) {
+		    	String table="create table PayData(Debitcard_or_Creditcard varchar(16) unique,Upi varchar(20) primary key)";
+				PreparedStatement s=con.prepareStatement(table);
+				s.executeUpdate();
+				String in_pay1="Insert into PayData values('1234567812345678','12345@bank')";
+				String in_pay2="Insert into PayData values('8765432187654321','87654@abbank')";
+				Statement in_p1=con.createStatement();
+				in_p1.executeUpdate(in_pay1);
+				in_p1.executeUpdate(in_pay2);
+		    }
+		    
+		    ResultSet capacity_exist=dbm.getTables(null, null,"CapacityDetails", null);
+		    if(capacity_exist.next()==false) {
+		    	String table_capacity="create table CapacityDetails(TotalAvailableRACTickets Integer,TotalAvailableWaitingTickets Integer,"
+		    			+ "TotalUpperBerth Integer,TotalMiddleBerth Integer,TotalLowerBerth Integer)";
+				PreparedStatement s1=con.prepareStatement(table_capacity);
+				s1.executeUpdate();
+				String in_cap="Insert into CapacityDetails values(1,1,1,1,1)";
+				Statement in_st=con.createStatement();
+				in_st.executeUpdate(in_cap);
+		    }
+		    
+		    ResultSet emp_table=dbm.getTables(null, null,"EmployeeData", null);
+		    if(emp_table.next()==false) {
+		    	String etable="create table EmployeeData(IDcard varchar(10) unique,Name varchar(20),"
+		    			+ "Username varchar(15) primary key,Password varchar(12))";
+				PreparedStatement s3=con.prepareStatement(etable);
+				s3.executeUpdate();
+				String in_cap1="Insert into EmployeeData values('EMP101','Abhishek','EMP101','EMPLOYEE101')";
+				String in_cap2="Insert into EmployeeData values('EMP102','Karthi','EMP102','EMPLOYEE102')";
+				Statement in_st1=con.createStatement();
+				in_st1.executeUpdate(in_cap1);
+				in_st1.executeUpdate(in_cap2);
+		    }
+		    
+		    ResultSet pass_table=dbm.getTables(null, null,"PassengerData", null);
+		    if(pass_table.next()==false) {
+		    	String ptable="create table PassengerData(Name varchar(20),Phonenumber varchar(11) unique,"
+		    			+ "UserName varchar(20) primary key,Password varchar(12))";
+				PreparedStatement s4=con.prepareStatement(ptable);
+				s4.executeUpdate();
+		    }
+		    
+		    Scanner sc=new Scanner(System.in);
+		    System.out.println("Welcome to Railways!");
+		    int user=0;
+		    String login_user = null;
+		    System.out.println("Enter Employee or Passenger\nEmployee enter 1\nPassenger enter 2");
+		    int eop=sc.nextInt();
+		    sc.nextLine();
+		    if(eop==1) {
+		    	System.out.println("Enter the username");
+		    	String e_un=sc.nextLine();
+		    	System.out.println("Enter the password");
+		    	String e_p=sc.nextLine();
+		    	String e_d="Select * from EmployeeData where Username=?";
+		    	PreparedStatement e_pr=con.prepareStatement(e_d);
+		    	e_pr.setString(1, e_un);
+		    	ResultSet erst=e_pr.executeQuery();
+		    	if(erst.next()!=false && erst.getString(3).equals(e_un) && erst.getString(4).equals(e_p)) {
+		    		login_user=erst.getString(2);
+		    		System.out.println("Hi "+erst.getString(2)+"!, you have logged in successfully");
+		    	}
+		    	else {
+		    		System.out.println("Username or Password is incorrect");
+		    		System.exit(0);
+		    	}
+		    	user=1;
+		    }
+		    else {
+		    	int ns=0;
+		    	int nu=0;
+		    	while(ns==0) {
+		    		System.out.println("Enter New user or Old user\nNew user enter 1\nOld user enter 2");
+		    		int u_in=sc.nextInt();
+		    		sc.nextLine();
+		    		if(u_in==1) {
+		    			System.out.println("Enter your name");
+		    			String p_n=sc.nextLine();
+		    			System.out.println("Enter your phonenumber");
+		    			String p_p=sc.nextLine();
+		    			while(nu==0) {
+		    			System.out.println("Enter the username");
+		    			String p_un=sc.nextLine();
+		    			String p_d1="Select * from PassengerData where Username=?";
+				    	PreparedStatement p_pr=con.prepareStatement(p_d1);
+				    	p_pr.setString(1, p_un);
+				    	ResultSet prst=p_pr.executeQuery();
+				    	if(prst.next()!=false && prst.getString(1).equals(p_n) && prst.getString(2).equals(p_p)) {
+				    		System.out.println("User is already exists!, please login"); 
+				    		break;
+				    	}
+				    	else if(prst.next()!=false && prst.getString(3).equals(p_un)) {
+				    		System.out.println("Username is already exists!, please enter different username");
+				    	}
+				    	else {
+				    		System.out.println("Enter the password");
+				    		String p_ps=sc.nextLine();
+				    		String in_cap3="Insert into PassengerData values(?,?,?,?)";
+							PreparedStatement in_st2=con.prepareStatement(in_cap3);
+							in_st2.setString(1,p_n);
+							in_st2.setString(2,p_p);
+							in_st2.setString(3,p_un);
+							in_st2.setString(4,p_ps);
+							in_st2.executeUpdate();
+							ns=1;
+							System.out.println("User creation is successfully completed");
+							login_user=p_n;
+							break;
+				    	}
+		    			}
+		    		}
+		    		else {
+		    			System.out.println("Enter the username");
+				    	String p_un1=sc.nextLine();
+				    	System.out.println("Enter the password");
+				    	String p_ps1=sc.nextLine();
+				    	String p_d1="Select * from PassengerData where Username=?";
+				    	PreparedStatement p_pr1=con.prepareStatement(p_d1);
+				    	p_pr1.setString(1, p_un1);
+				    	ResultSet prst1=p_pr1.executeQuery();
+				    	if(prst1.next()!=false && prst1.getString(3).equals(p_un1) && prst1.getString(4).equals(p_ps1)) {
+				    		login_user=prst1.getString(1);
+				    		System.out.println("Hi "+prst1.getString(1)+"!, you have logged in successfully");
+				    		break;
+				    	}
+				    	else {
+				    		System.out.println("Username or Password is incorrect");
+				    		System.exit(0);
+				    	}
+		    			
+		    		}
+		    	}
+		    	user=2;
+		}
+		    
+		TicketId t=new TicketId();
+		ArrayList<String> temp_tick_id=new ArrayList<>();
+		ArrayList<String> temp_berth=new ArrayList<>();
+		String sel_cap="Select * from CapacityDetails";
+		Statement s_st=con.createStatement();
+		ResultSet s_r=s_st.executeQuery(sel_cap);
+		int totalAvailableRACTickets=0;
+        int totalAvailableWaitingTickets=0;
+        int totalUpperBerth=0;
+        int totalMiddleBerth=0;
+        int totalLowerBerth=0;
+        int t_price=100;
+        int sum_price=0;
+		while(s_r.next()) {
+			totalAvailableRACTickets=s_r.getInt(1);
+	        totalAvailableWaitingTickets=s_r.getInt(2);
+	        totalUpperBerth=s_r.getInt(3);
+	        totalMiddleBerth=s_r.getInt(4);
+	        totalLowerBerth=s_r.getInt(5);
+		}
+		
+		while(true) {
+            String berth = null;
+            String status = null;
+            if(user==1) {
+            	System.out.println("1. Booking\n2. Cancel\n3. "
+    					+ "Print Booked Tickets\n4. Print Available Tickets\n6. Payment and Stop Program\n7. Stop the program\n"
+    					+ "Enter your Option");
+            }
+            else {
+            	System.out.println("1. Booking\n2. Cancel\n4. Print Available Tickets\n5. Display all the Tickets\n"
+            			+ "6. Payment and Stop Program\n7. Stop the program\nEnter your Option");
+            }
+			int input;
+			input=sc.nextInt();
+			try 
+			{switch(input){
+				case 1:
+					if(totalAvailableWaitingTickets==0) {
+						System.out.println("Tickets are full");
+						break;
+					}
+					boolean g=false;
+					int l_w_c=0;
+					System.out.print("Enter your Name:");
+					sc.nextLine();
+					String name=sc.nextLine();
+					System.out.print("Enter your Age:");
+					int age=0;
+					try {
+					age=sc.nextInt();
+					}
+					catch(Exception e) {
+						e.printStackTrace();
+						break;
+					}
+					sc.nextLine();
+					System.out.print("Enter your Gender:(M/F/T)");
+					String gender = null;
+					while(g==false) {
+						gender=sc.nextLine();
+						if(gender.equals("M")||gender.equals("F")||gender.equals("T")) {
+							g=true;
+						}
+						else {
+							System.out.println("Gender is invalid, Please enter correct input");
+						}
+					}
+					String child_name=null;
+					String women_with_child="NO";
+					if(gender.equals("F") && age>15) {
+						System.out.println("If you have child below age 5, please enter YES else enter NO");
+						String c_l_w_c=sc.nextLine();
+						if(c_l_w_c.equals("YES")){
+							System.out.println("Enter the Child Name: ");
+							child_name=sc.nextLine();
+							women_with_child="YES";
+							l_w_c=1;
+						}
+					}
+					if(age<5) {
+						status="Confirmed";
+						berth="None";
+					}
+					else if(age>60||l_w_c==1) {
+						if(totalLowerBerth>0) {
+							berth="Lower Berth";
+							status="Confirmed";
+							System.out.println("Lower Berth is Booked Successfully");
+							totalLowerBerth--;
+						}
+						else if(totalUpperBerth==0 && totalMiddleBerth==0 && 
+								totalAvailableRACTickets==0) {
+							berth="No";
+						    status="Waiting";
+						    totalAvailableWaitingTickets--;
+						    System.out.println("Your Tickets are in Waiting List");
+						}
+						else {
+							System.out.println("Available Berths");
+							if(totalUpperBerth>0) {
+								System.out.println("Available Upper Berths: "+totalUpperBerth+" For Upper Berth Enter 1");}
+							if(totalMiddleBerth>0) {
+							System.out.println("Available Middle Berths: "+totalMiddleBerth+" For Middle Berth Enter 2");}
+							if(totalAvailableRACTickets>0) {
+							System.out.println("RAC Tickets: "+totalAvailableRACTickets+" For RAC Enter 3");}
+							System.out.println("If you want tickets, please enter YES "
+									+ "else NO");
+							String input1=sc.nextLine();
+							if(input1.equals("YES")) {
+								System.out.println("Enter your berth");
+								int b_num=sc.nextInt();
+								if(totalUpperBerth>0) {
+								if(b_num==1) {
+									berth="Upper Berth";
+									status="Confirmed";
+									totalUpperBerth--;
+									System.out.println("Upper Berth is Booked Successfully");
+								}
+								}
+								if(totalMiddleBerth>0) {
+								if(b_num==2){
+									berth="Middle Berth";
+									status="Confirmed";
+									totalMiddleBerth--;
+									System.out.println("Middle Berth is Booked Successfully");
+								}
+								}
+								if(totalAvailableRACTickets>0) {
+								if(b_num==3){
+									berth="RAC";
+									status="RAC Confirmed";
+									totalAvailableRACTickets--;
+									System.out.println("RAC is Booked Successfully");
+								}
+								}
+							}
+							else {
+								System.out.println("NO Tickets are BOOked");
+								break;
+							}
+						}
+					}
+					else {
+						if(totalUpperBerth>0 || totalMiddleBerth>0) {
+							System.out.println("Available Berths");
+							if(totalUpperBerth>0) {
+								System.out.println("Available Upper Berths: "+totalUpperBerth+" For Upper Berth Enter 1");}
+							if(totalMiddleBerth>0) {
+							System.out.println("Available Middle Berths: "+totalMiddleBerth+" For Middle Berth Enter 2");}
+							System.out.println("Enter your berth number");
+							int input2=sc.nextInt();
+							if(totalUpperBerth>0) {
+							if(input2==1) {
+								berth="Upper Berth";
+								status="Confirmed";
+								totalUpperBerth--;
+								System.out.println("Upper Berth is Booked Successfully");
+							}}
+							if(totalMiddleBerth>0) {
+							if(input2==2){
+								berth="Middle Berth";
+								status="Confirmed";
+								totalMiddleBerth--;
+								System.out.println("Middle Berth is Booked Successfully");
+							}}
+						}
+						else if(totalLowerBerth==0 && 
+								totalAvailableRACTickets==0) {
+							berth="No";
+						    status="Waiting";
+						    totalAvailableWaitingTickets--;
+						    System.out.println("Your Tickets are in Waiting List");
+						}
+						else {
+							System.out.println("Available Berths");
+							if(totalLowerBerth>0) {
+							System.out.println("Available Lower Berths: "+totalLowerBerth+" For Lower Berth Enter 1");}
+							if(totalAvailableRACTickets>0) {
+							System.out.println("Available RAC Tickets: "+totalAvailableRACTickets+" For RAC Enter 2");}
+							System.out.println("If you want tickets, please enter YES "
+									+ "else NO");
+							String input3=sc.nextLine();
+							if(input3.equals("YES")) {
+								System.out.println("Enter your berth");
+								int b_num=sc.nextInt();
+								if(totalLowerBerth>0) {
+								if(b_num==1) {
+									berth="Lower Berth";
+									status="Confirmed";
+									totalLowerBerth--;
+									System.out.println("Lower Berth is Booked Successfully");
+								}}
+								if(totalAvailableRACTickets>0) {
+								if(b_num==2){
+									berth="RAC";
+									status="RAC Confirmed";
+									totalAvailableRACTickets--;
+									System.out.println("RAC is Booked Successfully");
+								}}
+							}
+							else {
+								System.out.println("NO Tickets are BOOked");
+								break;
+							}
+						}
+					}
+					t.createSeatNumber(berth);
+					t.createId();
+					String ticketId=t.id;
+					Passenger p=new Passenger(ticketId,name,age,gender,berth,t.s_id,status);
+					System.out.println(p.toString(p));
+					temp_tick_id.add(ticketId);
+					temp_berth.add(berth);
+					String inst_st="Insert into PassengerDetails values (?,?,?,?,?,?,?,?,?,?,?)";
+					PreparedStatement stm=con.prepareStatement(inst_st);
+					stm.setString(1,ticketId);
+					stm.setString(2,name);
+					stm.setInt(3,age);
+					stm.setString(4,gender);
+					stm.setString(5,women_with_child);
+					stm.setString(6,child_name);
+					stm.setString(7,berth);
+					stm.setString(8,t.s_id);
+					stm.setString(9,status);
+					stm.setString(10,login_user);
+					stm.setString(11,"Pending");
+					stm.executeUpdate();
+					String in_cap1="update CapacityDetails set TotalAvailableRACTickets=?,"
+							+ "TotalAvailableWaitingTickets=?,TotalUpperBerth=?,"
+							+ "TotalMiddleBerth=?,TotalLowerBerth=?";
+					PreparedStatement in_c1=con.prepareStatement(in_cap1);
+					in_c1.setInt(1, totalAvailableRACTickets);
+					in_c1.setInt(2,totalAvailableWaitingTickets);
+					in_c1.setInt(3, totalUpperBerth);
+					in_c1.setInt(4, totalMiddleBerth);
+					in_c1.setInt(5, totalLowerBerth);
+					in_c1.executeUpdate();
+					sum_price=sum_price+t_price;
+					break;
+					
+				case 2:
+					int m=0;
+					System.out.println("Enter your ticket Id: ");
+					sc.nextLine();
+					String ticket_id=sc.nextLine();
+					String sel_tic_query="Select * from PassengerDetails where Ticket_Id=?";
+					PreparedStatement d_s1=con.prepareStatement(sel_tic_query);
+					d_s1.setString(1,ticket_id);
+					ResultSet rs_st=d_s1.executeQuery();
+					while(rs_st.next()==false) {
+						m=1;
+						break;
+					}
+					String berth_c=rs_st.getString(7);
+					String temp_seat_num=rs_st.getString(8);
+					String can_tic_query="Delete from PassengerDetails where Ticket_Id=?";
+					PreparedStatement d_s=con.prepareStatement(can_tic_query);
+					d_s.setString(1,ticket_id);
+					if(rs_st.getString(10).equals(login_user)) {
+					System.out.println("Ticket was cancelled successfully");
+					d_s.executeUpdate();
+					if(berth_c.equals("Lower Berth") && totalAvailableRACTickets==1){
+						totalLowerBerth++;
+					}
+					if(berth_c.equals("Middle Berth") && totalAvailableRACTickets==1){
+						totalMiddleBerth++;
+					}
+					if(berth_c.equals("Upper Berth") && totalAvailableRACTickets==1){
+						totalUpperBerth++;
+					}
+					String sel_rac_query="Select * from PassengerDetails where Status='RAC Confirmed'";
+					Statement s_q=con.createStatement();
+					ResultSet rs_s_q=s_q.executeQuery(sel_rac_query);
+					String temp_rac_seat_num=rs_s_q.getString(8);
+					while(rs_s_q.next()){
+						String up_rac_Status="Update PassengerDetails set Status=?,Berth=?,Seat_Number=? where Status='RAC Confirmed'";
+						PreparedStatement up_st=con.prepareStatement(up_rac_Status);
+						up_st.setString(1,"Confirmed");
+						up_st.setString(2,berth_c);
+						up_st.setString(3, temp_seat_num);
+						up_st.executeUpdate();
+						if(totalAvailableWaitingTickets==1) {
+							totalAvailableRACTickets++;
+						}
+						break;
+					}
+					String sel_wai_query="Select * from PassengerDetails where Status='Waiting'";
+					Statement w_q=con.createStatement();
+					ResultSet rs_w_q=w_q.executeQuery(sel_wai_query);
+					while(rs_w_q.next()){
+						String up_wai_Status="Update PassengerDetails set Status=?,Berth=?,Seat_Number=? where Status='Waiting'";
+						PreparedStatement up_st=con.prepareStatement(up_wai_Status);
+						up_st.setString(1,"RAC Confirmed");
+						up_st.setString(2,"RAC");
+						up_st.setString(3, temp_rac_seat_num);
+						up_st.executeUpdate();
+						totalAvailableWaitingTickets++;
+						break;
+					}
+					if(m==1) {
+						System.out.println("Ticket Id is invalid");
+					}
+					in_cap1="update CapacityDetails set TotalAvailableRACTickets=?,"
+							+ "TotalAvailableWaitingTickets=?,TotalUpperBerth=?,"
+							+ "TotalMiddleBerth=?,TotalLowerBerth=?";
+					in_c1=con.prepareStatement(in_cap1);
+					in_c1.setInt(1, totalAvailableRACTickets);
+					in_c1.setInt(2,totalAvailableWaitingTickets);
+					in_c1.setInt(3, totalUpperBerth);
+					in_c1.setInt(4, totalMiddleBerth);
+					in_c1.setInt(5, totalLowerBerth);
+					in_c1.executeUpdate();
+					}
+					else {
+						System.out.println("You cannot able to cancel this ticket");
+					}
+					break;
+					
+				case 3:
+					if(user==1) {
+					String sel_all_query="Select * from PassengerDetails";
+					Statement s_a_st=con.createStatement();
+					ResultSet rs_ast=s_a_st.executeQuery(sel_all_query);
+					String sel_all_query1="Select * from PassengerDetails";
+					Statement s_a_st1=con.createStatement();
+					ResultSet rs_ast1=s_a_st1.executeQuery(sel_all_query1);
+					if(rs_ast1.next()==false) {
+						System.out.println("No Tickets are Booked");
+						break;
+					}
+					System.out.println("Booked Tickets Details");
+					System.out.format("%7s%7s%7s%7s%18s%12s%10s%13s%10s%15s%15s","Ticket_Id","Name","Age","Gender","Women_with_child",
+							"Child_Name","Berth","Seat_Number","Status","Login_Username","Payment_Status");
+					System.out.println();
+					while(rs_ast.next()) {
+						System.out.format("%7s%10s%5s%5s%15s%15s%15s%7s%15s%10s%10s",rs_ast.getString(1),rs_ast.getString(2),rs_ast.getInt(3),rs_ast.getString(4)
+								,rs_ast.getString(5),rs_ast.getString(6),rs_ast.getString(7),rs_ast.getString(8),
+								rs_ast.getString(9),rs_ast.getString(10),rs_ast.getString(11));
+						System.out.println();
+					}
+					break;
+					}
+					else {
+						System.out.println("Hi "+login_user+"!, You cannot able to access this feature");
+						break;
+					}
+					
+				case 4:
+					System.out.println("Available Tickets");
+					String sel_cap_query="Select * from CapacityDetails";
+					Statement s_a_st2=con.createStatement();
+					ResultSet rs_as1=s_a_st2.executeQuery(sel_cap_query);
+					System.out.println("Upper Berth: "+rs_as1.getInt(3)+"\nMiddle Berth: "+rs_as1.getInt(4)+
+							"\nLower Berth: "+rs_as1.getInt(5)+"\nRAC Tickets: "+rs_as1.getInt(1)+
+							"\nWaiting List Tickets: "+rs_as1.getInt(2));
+					break;
+					
+				case 5:
+					if(user==2) {
+						String sel_p_all_query="Select * from PassengerDetails where Login_Username=?";
+						PreparedStatement s_p_a_st=con.prepareStatement(sel_p_all_query);
+						s_p_a_st.setString(1,login_user);
+						ResultSet prs_ast=s_p_a_st.executeQuery();
+						String sel_p_all_query1="Select * from PassengerDetails where Login_Username=?";
+						PreparedStatement s_p_a_st1=con.prepareStatement(sel_p_all_query1);
+						s_p_a_st1.setString(1,login_user);
+						ResultSet prs_ast1=s_p_a_st1.executeQuery();
+						if(prs_ast1.next()==false) {
+							System.out.println("No Tickets are Booked");
+							break;
+						}
+						System.out.println("Booked Tickets Details");
+						System.out.format("%7s%7s%7s%7s%18s%12s%10s%13s%10s","Ticket_Id","Name","Age","Gender","Women_with_child",
+								"Child_Name","Berth","Seat_Number","Status");
+						System.out.println();
+						while(prs_ast.next()) {
+							System.out.format("%7s%10s%5s%5s%15s%15s%15s%7s%15s",prs_ast.getString(1),prs_ast.getString(2),
+									prs_ast.getInt(3),prs_ast.getString(4),prs_ast.getString(5),prs_ast.getString(6),
+									prs_ast.getString(7),prs_ast.getString(8),prs_ast.getString(9));
+							System.out.println();
+						}
+						break;
+						}
+						else {
+							System.out.println("Hi "+login_user+"!, You cannot able to access this feature");
+							break;
+						}
+				
+				case 6:
+					if(temp_tick_id.size()==0) {
+						System.out.println("NO Tickets are Booked Now");
+						sc.close();
+						con.close();
+						System.exit(0);
+					}
+					int p1=0;
+					while(p1==0) {
+						System.out.println("Enter the payment mode: Debitcard/Credit card enter 1\nUpi enter 2");
+						String pMode=sc.nextLine();
+					if(pMode.equals("1")) {
+						System.out.println("Enter the Debitcard/creditcard number");
+						String dcnum=sc.nextLine();
+						String dcdata="Select * from PayData where Debitcard_or_Creditcard=?";
+						PreparedStatement stm1=con.prepareStatement(dcdata);
+						stm1.setString(1,dcnum);
+						ResultSet pstm1=stm1.executeQuery();
+						if(pstm1.next()!=false) {
+							System.out.println("Payment is successful");
+							String in_passup="update PassengerDetails set Payment_Status=? where Ticket_Id=?";
+							PreparedStatement in_pass1=con.prepareStatement(in_passup);
+							for(String s:temp_tick_id) {
+								in_pass1.setString(1,"Approved");
+								in_pass1.setString(2,s);
+								in_pass1.executeUpdate();
+							}
+							break;
+						}
+						else {
+							System.out.println("Payment failed");
+							String delst="Delete from PassengerDetails where Ticket_Id=?";
+							PreparedStatement delpr=con.prepareStatement(delst);
+							for(String s:temp_tick_id) {
+								delpr.setString(1,s);
+								delpr.executeUpdate();
+							}
+							for(String s:temp_berth) {
+								if(s.equals("Lower Berth")) {
+									totalLowerBerth++;
+								}
+								if(s.equals("Upper Berth")) {
+									totalUpperBerth++;
+								}
+								if(s.equals("Middle Berth")) {
+									totalMiddleBerth++;
+								}
+								if(s.equals("RAC")) {
+									totalAvailableRACTickets++;
+								}
+								if(s.equals("No")) {
+									totalAvailableWaitingTickets++;
+								}
+							}
+							in_cap1="update CapacityDetails set TotalAvailableRACTickets=?,"
+									+ "TotalAvailableWaitingTickets=?,TotalUpperBerth=?,"
+									+ "TotalMiddleBerth=?,TotalLowerBerth=?";
+							in_c1=con.prepareStatement(in_cap1);
+							in_c1.setInt(1, totalAvailableRACTickets);
+							in_c1.setInt(2,totalAvailableWaitingTickets);
+							in_c1.setInt(3, totalUpperBerth);
+							in_c1.setInt(4, totalMiddleBerth);
+							in_c1.setInt(5, totalLowerBerth);
+							in_c1.executeUpdate();
+							break;
+						}
+					}
+					else if(pMode.equals("2")) {
+						System.out.println("Enter the Upi Id");
+						String dcnum2=sc.nextLine();
+						String dcdata2="Select * from PayData where Upi=?";
+						PreparedStatement stm2=con.prepareStatement(dcdata2);
+						stm2.setString(1,dcnum2);
+						ResultSet pstm2=stm2.executeQuery();
+						if(pstm2.next()!=false) {
+							System.out.println("Payment is successful");
+							String in_passup="update PassengerDetails set Payment_Status=? where Ticket_Id=?";
+							PreparedStatement in_pass1=con.prepareStatement(in_passup);
+							for(String s:temp_tick_id) {
+								in_pass1.setString(1,"Approved");
+								in_pass1.setString(2,s);
+								in_pass1.executeUpdate();
+							}
+							break;
+						}
+						else {
+							System.out.println("Payment failed");
+							String delst="Delete from PassengerDetails where Ticket_Id=?";
+							PreparedStatement delpr=con.prepareStatement(delst);
+							for(String s:temp_tick_id) {
+								delpr.setString(1,s);
+								delpr.executeUpdate();
+							}
+							for(String s:temp_berth) {
+								if(s.equals("Lower Berth")) {
+									totalLowerBerth++;
+								}
+								if(s.equals("Upper Berth")) {
+									totalUpperBerth++;
+								}
+								if(s.equals("Middle Berth")) {
+									totalMiddleBerth++;
+								}
+								if(s.equals("RAC")) {
+									totalAvailableRACTickets++;
+								}
+								if(s.equals("No")) {
+									totalAvailableWaitingTickets++;
+								}
+							}
+							in_cap1="update CapacityDetails set TotalAvailableRACTickets=?,"
+									+ "TotalAvailableWaitingTickets=?,TotalUpperBerth=?,"
+									+ "TotalMiddleBerth=?,TotalLowerBerth=?";
+							in_c1=con.prepareStatement(in_cap1);
+							in_c1.setInt(1, totalAvailableRACTickets);
+							in_c1.setInt(2,totalAvailableWaitingTickets);
+							in_c1.setInt(3, totalUpperBerth);
+							in_c1.setInt(4, totalMiddleBerth);
+							in_c1.setInt(5, totalLowerBerth);
+							in_c1.executeUpdate();
+							break;
+						}						
+					}
+					else {
+						System.out.println("Invalid Input");
+					}
+					}
+					sc.close();
+					con.close();
+					System.exit(0);
+				
+				case 7:
+					String delst="Delete from PassengerDetails where Ticket_Id=?";
+					PreparedStatement delpr=con.prepareStatement(delst);
+					for(String s:temp_tick_id) {
+						delpr.setString(1,s);
+						delpr.executeUpdate();
+					}
+					for(String s:temp_berth) {
+						if(s.equals("Lower Berth")) {
+							totalLowerBerth++;
+						}
+						if(s.equals("Upper Berth")) {
+							totalUpperBerth++;
+						}
+						if(s.equals("Middle Berth")) {
+							totalMiddleBerth++;
+						}
+						if(s.equals("RAC")) {
+							totalAvailableRACTickets++;
+						}
+						if(s.equals("No")) {
+							totalAvailableWaitingTickets++;
+						}
+					}
+					in_cap1="update CapacityDetails set TotalAvailableRACTickets=?,"
+							+ "TotalAvailableWaitingTickets=?,TotalUpperBerth=?,"
+							+ "TotalMiddleBerth=?,TotalLowerBerth=?";
+					in_c1=con.prepareStatement(in_cap1);
+					in_c1.setInt(1, totalAvailableRACTickets);
+					in_c1.setInt(2,totalAvailableWaitingTickets);
+					in_c1.setInt(3, totalUpperBerth);
+					in_c1.setInt(4, totalMiddleBerth);
+					in_c1.setInt(5, totalLowerBerth);
+					in_c1.executeUpdate();
+					sc.close();
+					con.close();
+					System.exit(0);
+					
+				default:
+					
+					System.out.println("Default Input");
+			}
+			}
+			
+			catch(Exception e) {
+				e.printStackTrace();
+				System.out.println("Invalid Input");
+			}
+		}
+		
+	}
+		
+	catch (Exception e1) {
+		e1.printStackTrace();
+	}
+	}
+}
