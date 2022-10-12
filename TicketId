@@ -1,0 +1,34 @@
+class TicketId{
+	static int c_id=1;
+	static int lb_id=1;
+	static int mb_id=1;
+	static int ub_id=1;
+	static int r_id=1;
+	String s_id;
+	String id;
+	public void createId() {
+			id="T"+c_id;
+			c_id++;
+	}
+	public void createSeatNumber(String s) {
+		if(s.equals("Lower Berth")) {
+			s_id="LB"+lb_id;
+			lb_id++;
+		}
+		else if(s.equals("Middle Berth")) {
+			s_id="MB"+mb_id;
+			mb_id++;
+		}
+		else if(s.equals("Upper Berth")) {
+			s_id="UB"+ub_id;
+			ub_id++;
+		}
+		else if(s.equals("RAC")) {
+			s_id="RAC"+r_id;
+			r_id++;
+		}
+		else {
+			s_id="null";
+		}
+	}
+}
